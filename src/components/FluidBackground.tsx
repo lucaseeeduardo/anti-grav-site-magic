@@ -1,19 +1,22 @@
 import { useRef, useEffect } from 'react';
 
-interface Point {
+interface Particle {
   baseX: number;
   baseY: number;
   x: number;
   y: number;
   vx: number;
   vy: number;
+  size: number;
+  baseSize: number;
+  opacity: number;
 }
 
 export default function FluidBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -9999, y: -9999 });
   const animationRef = useRef<number | undefined>(undefined);
-  const pointsRef = useRef<Point[]>([]);
+  const particlesRef = useRef<Particle[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,16 +25,16 @@ export default function FluidBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Configurações
-    const gridSpacing = 40;
-    const dotRadius = 1.5;
-    const mouseRadius = 150;
-    const elasticity = 0.08;
-    const friction = 0.88;
-    const repelStrength = 10;
+    // Configurações do efeito Antigravity
+    const gridSpacing = 35;
+    const mouseRadius = 180;
+    const attractStrength = 0.015;
+    const returnSpeed = 0.05;
+    const friction = 0.92;
+    const maxSpeed = 3;
 
     const initGrid = () => {
-      pointsRef.current = [];
+      particlesRef.current = [];
       const cols = Math.ceil(canvas.width / gridSpacing) + 1;
       const rows = Math.ceil(canvas.height / gridSpacing) + 1;
 
@@ -39,13 +42,18 @@ export default function FluidBackground() {
         for (let j = 0; j < rows; j++) {
           const x = i * gridSpacing;
           const y = j * gridSpacing;
-          pointsRef.current.push({
+          const baseSize = Math.random() * 1 + 1; // Tamanho variado entre 1 e 2
+          
+          particlesRef.current.push({
             baseX: x,
             baseY: y,
             x: x,
             y: y,
             vx: 0,
             vy: 0,
+            size: baseSize,
+            baseSize: baseSize,
+            opacity: Math.random() * 0.3 + 0.3, // Opacidade variada
           });
         }
       }
@@ -94,33 +102,67 @@ export default function FluidBackground() {
 
       const { x: mouseX, y: mouseY } = mouseRef.current;
 
-      pointsRef.current.forEach((point) => {
-        const dx = mouseX - point.x;
-        const dy = mouseY - point.y;
+      particlesRef.current.forEach((particle) => {
+        const dx = mouseX - particle.x;
+        const dy = mouseY - particle.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        if (dist < mouseRadius) {
-          const force = (mouseRadius - dist) / mouseRadius;
+        // Efeito de atração suave quando o mouse está próximo
+        if (dist < mouseRadius && dist > 0) {
+          const force = (1 - dist / mouseRadius) * attractStrength;
           const angle = Math.atan2(dy, dx);
-          point.vx -= Math.cos(angle) * force * repelStrength;
-          point.vy -= Math.sin(angle) * force * repelStrength;
+          
+          // Movimento em direção ao mouse de forma suave
+          particle.vx += Math.cos(angle) * force * 5;
+          particle.vy += Math.sin(angle) * force * 5;
+
+          // Aumenta o tamanho e opacidade quando próximo do mouse
+          const sizeFactor = 1 + (1 - dist / mouseRadius) * 2;
+          particle.size = particle.baseSize * sizeFactor;
+          particle.opacity = Math.min(0.8, particle.opacity + 0.02);
+        } else {
+          // Retorna ao tamanho e opacidade original
+          particle.size += (particle.baseSize - particle.size) * 0.1;
+          particle.opacity += (Math.random() * 0.3 + 0.3 - particle.opacity) * 0.05;
         }
 
-        const backDx = point.baseX - point.x;
-        const backDy = point.baseY - point.y;
-        point.vx += backDx * elasticity;
-        point.vy += backDy * elasticity;
+        // Força de retorno à posição original (mais suave)
+        const backDx = particle.baseX - particle.x;
+        const backDy = particle.baseY - particle.y;
+        particle.vx += backDx * returnSpeed;
+        particle.vy += backDy * returnSpeed;
 
-        point.vx *= friction;
-        point.vy *= friction;
+        // Aplicar fricção
+        particle.vx *= friction;
+        particle.vy *= friction;
 
-        point.x += point.vx;
-        point.y += point.vy;
+        // Limitar velocidade máxima
+        const speed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+        if (speed > maxSpeed) {
+          particle.vx = (particle.vx / speed) * maxSpeed;
+          particle.vy = (particle.vy / speed) * maxSpeed;
+        }
 
-        // Desenhar ponto com cor azul do Google
+        // Atualizar posição
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+
+        // Desenhar partícula com gradiente azul do Google
+        const gradient = ctx.createRadialGradient(
+          particle.x, 
+          particle.y, 
+          0, 
+          particle.x, 
+          particle.y, 
+          particle.size * 2
+        );
+        gradient.addColorStop(0, `rgba(66, 133, 244, ${particle.opacity})`);
+        gradient.addColorStop(0.5, `rgba(66, 133, 244, ${particle.opacity * 0.5})`);
+        gradient.addColorStop(1, `rgba(66, 133, 244, 0)`);
+
         ctx.beginPath();
-        ctx.arc(point.x, point.y, dotRadius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(66, 133, 244, 0.4)';
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
         ctx.fill();
       });
 

@@ -34,9 +34,6 @@ export default function Navigation() {
               {item.label}
             </Link>
           ))}
-          <Button size="sm" className="rounded-full">
-            Download CV
-          </Button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -48,7 +45,7 @@ export default function Navigation() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+        {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <div className="px-6 py-4 flex flex-col gap-4">
@@ -64,9 +61,6 @@ export default function Navigation() {
                 {item.label}
               </Link>
             ))}
-            <Button size="sm" className="rounded-full w-full">
-              Download CV
-            </Button>
           </div>
         </div>
       )}
