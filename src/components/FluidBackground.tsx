@@ -60,9 +60,8 @@ export default function FluidBackground() {
     resizeCanvas();
 
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current.x = e.clientX - rect.left;
-      mouseRef.current.y = e.clientY - rect.top;
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
     };
 
     const handleMouseLeave = () => {
@@ -72,9 +71,8 @@ export default function FluidBackground() {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        const rect = canvas.getBoundingClientRect();
-        mouseRef.current.x = e.touches[0].clientX - rect.left;
-        mouseRef.current.y = e.touches[0].clientY - rect.top;
+        mouseRef.current.x = e.touches[0].clientX;
+        mouseRef.current.y = e.touches[0].clientY;
       }
     };
 
@@ -83,10 +81,10 @@ export default function FluidBackground() {
       mouseRef.current.y = -9999;
     };
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-    canvas.addEventListener('touchmove', handleTouchMove);
-    canvas.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('resize', resizeCanvas);
 
     const animate = () => {
@@ -135,10 +133,10 @@ export default function FluidBackground() {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', resizeCanvas);
     };
   }, []);
