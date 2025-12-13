@@ -37,6 +37,14 @@ All colors MUST be HSL.
     --ring: 217 89% 61%;
 
     --radius: 0.75rem;
+
+    /* Success/positive metrics */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning/caution */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
   }
 }
 
